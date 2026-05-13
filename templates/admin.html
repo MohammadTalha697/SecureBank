@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SecureBank — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{--black:#080A0F;--surface:#0E1117;--card:#141820;--border:#1E2530;--accent:#C8F135;--accent2:#FF4757;--text:#E8EDF5;--muted:#5A6478;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
+  body{background:var(--black);color:var(--text);font-family:var(--sans);min-height:100vh}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+  .logo-icon{width:34px;height:34px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--black);clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%)}
+  .logo-text{font-weight:800;font-size:16px}.logo-text span{color:var(--accent)}
+  .nav-link{font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;transition:color .2s}
+  .nav-link:hover{color:var(--text)}.nav-link.danger{color:var(--accent2)}
+  .admin-badge{font-family:var(--mono);font-size:10px;padding:5px 14px;border:1px solid var(--accent);color:var(--accent);letter-spacing:1px;text-transform:uppercase}
+
+  .main{padding:32px;max-width:1200px;margin:0 auto}
+  .page-title{font-size:13px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+  .page-heading{font-size:32px;font-weight:800;letter-spacing:-1px;margin-bottom:32px}
+  .page-heading span{color:var(--accent)}
+
+  .access-note{background:rgba(200,241,53,.06);border:1px solid rgba(200,241,53,.2);padding:14px 20px;font-family:var(--mono);font-size:11px;color:var(--accent);margin-bottom:32px;line-height:1.6}
+
+  .panel{background:var(--card);border:1px solid var(--border);margin-bottom:24px}
+  .panel-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .panel-title{font-size:14px;font-weight:700}
+  .panel-tag{font-family:var(--mono);font-size:9px;padding:4px 10px;border:1px solid var(--border);color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+  table{width:100%;border-collapse:collapse}
+  th{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 20px;border-bottom:1px solid var(--border)}
+  td{font-family:var(--mono);font-size:12px;padding:13px 20px;border-bottom:1px solid var(--border);color:var(--text)}
+  tr:last-child td{border-bottom:none}
+  .role-admin{background:rgba(200,241,53,.1);color:var(--accent);padding:3px 10px;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+  .role-user{background:var(--surface);color:var(--muted);padding:3px 10px;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:24px">
+    <a href="/dashboard" class="logo"><div class="logo-icon">SB</div><div class="logo-text">Secure<span>Bank</span></div></a>
+    <div class="admin-badge">Admin Panel</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/logout" class="nav-link danger">Logout</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-title">// Access Control Demo</div>
+  <div class="page-heading">Admin <span>Panel</span></div>
+
+  <div class="access-note">
+    ✓ Role-Based Access Control — This page is only accessible to users with role = <strong>admin</strong>.
+    Regular users (alice, bob) get a 403 error. This demonstrates least-privilege access control.
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">All Users</div>
+      <div class="panel-tag">{{ users|length }} accounts</div>
+    </div>
+    <table>
+      <tr><th>ID</th><th>Username</th><th>Role</th><th>Balance</th><th>Password (SHA-512 Hash)</th></tr>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td><span class="{{ 'role-admin' if u.role == 'admin' else 'role-user' }}">{{ u.role }}</span></td>
+        <td>Rs.{{ "%.0f"|format(u.balance) }}</td>
+        <td style="color:var(--muted);font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis">{{ u.password[:40] }}...</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">All Transactions</div>
+      <div class="panel-tag">{{ transactions|length }} records</div>
+    </div>
+    <table>
+      <tr><th>ID</th><th>From</th><th>To</th><th>Amount</th><th>Note</th><th>Time</th></tr>
+      {% for tx in transactions %}
+      <tr>
+        <td>{{ tx.id }}</td>
+        <td>{{ tx.sender }}</td>
+        <td>{{ tx.receiver }}</td>
+        <td>Rs.{{ "%.0f"|format(tx.amount) }}</td>
+        <td style="color:var(--muted)">{{ tx.note or '—' }}</td>
+        <td style="color:var(--muted);font-size:10px">{{ tx.timestamp }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+</body>
+</html>
