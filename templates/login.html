@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureBank — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --black: #080A0F;
+    --surface: #0E1117;
+    --card: #141820;
+    --border: #1E2530;
+    --accent: #C8F135;
+    --accent2: #FF4757;
+    --text: #E8EDF5;
+    --muted: #5A6478;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .left-panel {
+    width: 55%;
+    position: relative;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+  }
+
+  .corner-tag {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .corner-tag span { color: var(--accent); }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .bank-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 50px;
+  }
+
+  .logo-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--black);
+    clip-path: polygon(0 0, 85% 0, 100% 15%, 100% 100%, 15% 100%, 0 85%);
+  }
+
+  .logo-text {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .hero-headline {
+    font-size: clamp(42px, 5vw, 68px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+  }
+
+  .hero-headline .highlight {
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero-sub {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 400px;
+    margin-bottom: 50px;
+  }
+
+  .mode-switcher {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    width: fit-content;
+    overflow: hidden;
+  }
+
+  .mode-btn {
+    padding: 12px 28px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+  }
+
+  .mode-btn.active-secure {
+    background: var(--accent);
+    color: var(--black);
+    font-weight: 700;
+  }
+
+  .mode-btn.active-vuln {
+    background: var(--accent2);
+    color: white;
+    font-weight: 700;
+  }
+
+  .mode-btn:hover:not(.active-secure):not(.active-vuln) {
+    color: var(--text);
+    background: var(--border);
+  }
+
+  .status-pills {
+    display: flex;
+    gap: 12px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .pill.active { border-color: var(--accent); color: var(--accent); }
+
+  .right-panel {
+    width: 45%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 50px;
+    background: var(--black);
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .card-header {
+    margin-bottom: 40px;
+  }
+
+  .card-header h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+
+  .card-header p {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .mode-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    margin-bottom: 32px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+
+  .mode-indicator.secure { border-color: var(--accent); color: var(--accent); }
+  .mode-indicator.vulnerable { border-color: var(--accent2); color: var(--accent2); }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .form-group { margin-bottom: 20px; }
+
+  .form-group label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus { border-color: var(--accent); }
+
+  .sqli-hint {
+    background: rgba(255,71,87,0.08);
+    border: 1px solid rgba(255,71,87,0.3);
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent2);
+    line-height: 1.7;
+  }
+
+  .sqli-hint strong { display: block; margin-bottom: 4px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .sqli-query-box {
+    background: #0A0C0F;
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #7EC8E3;
+    margin-bottom: 24px;
+    word-break: break-all;
+    line-height: 1.6;
+  }
+
+  .btn-login {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: var(--black);
+    border: none;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s;
+    clip-path: polygon(0 0, 95% 0, 100% 20%, 100% 100%, 5% 100%, 0 80%);
+  }
+
+  .btn-login.vulnerable-btn {
+    background: var(--accent2);
+    color: white;
+    clip-path: none;
+  }
+
+  .btn-login:hover { opacity: 0.85; }
+
+  .error-msg {
+    background: rgba(255,71,87,0.1);
+    border-left: 3px solid var(--accent2);
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent2);
+    margin-bottom: 20px;
+  }
+
+  .demo-creds {
+    margin-top: 30px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .demo-creds p {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .cred-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .cred-row span { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="left-panel">
+  <div class="grid-bg"></div>
+  <div class="corner-tag">SecureBank <span>v2.0</span> — InfoSec Lab</div>
+
+  <div class="hero-content">
+    <div class="bank-logo">
+      <div class="logo-icon"  style="font-family: 'Inter', sans-serif;">SB</div>
+      <div class="logo-text"  style="font-family: 'Inter', sans-serif;">Secure<span>Bank</span></div>
+    </div>
+
+    <h1 class="hero-headline" style="font-family: 'Inter', sans-serif;">
+      Banking
+      <span class="highlight">Attack Lab</span>
+    </h1>
+
+    <p class="hero-sub">
+      A live demonstration platform showing real web attacks and how modern defenses stop them. Switch between vulnerable and secure modes.
+    </p>
+
+    <div class="mode-switcher">
+      <a href="/login?mode=secure" class="mode-btn {% if mode == 'secure' %}active-secure{% endif %}">
+        ⬡ Secure Mode
+      </a>
+      <a href="/login?mode=vulnerable" class="mode-btn {% if mode == 'vulnerable' %}active-vuln{% endif %}">
+        ☠ Attack Mode
+      </a>
+    </div>
+
+    <div class="status-pills">
+      <div class="pill {% if mode == 'secure' %}active{% endif %}">SQL Injection Defense</div>
+      <div class="pill {% if mode == 'secure' %}active{% endif %}">CSRF Tokens</div>
+      <div class="pill {% if mode == 'secure' %}active{% endif %}">XSS Sanitization</div>
+      <div class="pill active">AES-128 Encryption</div>
+    </div>
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="login-card">
+    <div class="card-header">
+      <h2  style="font-family: 'Inter', sans-serif;">Sign In</h2>
+      <p>Enter your credentials to access your account</p>
+    </div>
+
+    <div class="mode-indicator {% if mode == 'secure' %}secure{% else %}vulnerable{% endif %}">
+      <div class="dot"></div>
+      {% if mode == 'secure' %}Secure Mode Active{% else %}Vulnerable Mode — Attack Enabled{% endif %}
+    </div>
+
+    {% if mode == 'vulnerable' %}
+    <div class="sqli-hint">
+      <strong>⚠ SQL Injection Active</strong>
+      Try: <code>' OR '1'='1</code> as username, anything as password
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Enter username" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter password">
+      </div>
+      <button type="submit" class="btn-login {% if mode == 'vulnerable' %}vulnerable-btn{% endif %}">
+        {% if mode == 'vulnerable' %}☠ Login (Vulnerable){% else %}→ Sign In Securely{% endif %}
+      </button>
+    </form>
+
+    <div class="demo-creds">
+      <p>Demo Credentials</p>
+      <div class="cred-row"><span>Admin:</span> admin / admin123</div>
+      <div class="cred-row"><span>User 1:</span> alice / user123</div>
+      <div class="cred-row"><span>User 2:</span> bob / user123</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
