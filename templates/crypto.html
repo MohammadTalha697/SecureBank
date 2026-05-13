@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SecureBank — Crypto Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{--black:#080A0F;--surface:#0E1117;--card:#141820;--border:#1E2530;--accent:#C8F135;--accent2:#FF4757;--text:#E8EDF5;--muted:#5A6478;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
+  body{background:var(--black);color:var(--text);font-family:var(--sans);min-height:100vh}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+  .logo-icon{width:34px;height:34px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--black);clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%)}
+  .logo-text{font-weight:800;font-size:16px}.logo-text span{color:var(--accent)}
+  .nav-link{font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;transition:color .2s}
+  .nav-link:hover{color:var(--text)}.nav-link.danger{color:var(--accent2)}
+
+  .main{padding:32px;max-width:1200px;margin:0 auto}
+  .page-title{font-size:13px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+  .page-heading{font-size:36px;font-weight:800;letter-spacing:-1.5px;margin-bottom:32px}
+  .page-heading span{color:var(--accent)}
+
+  .algo-tabs{display:flex;gap:0;border:1px solid var(--border);width:fit-content;margin-bottom:32px;overflow:hidden}
+  .tab-btn{padding:12px 28px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s}
+  .tab-btn.active-aes{background:var(--accent);color:var(--black);font-weight:700}
+  .tab-btn.active-des{background:var(--accent2);color:white;font-weight:700}
+  .tab-btn:hover:not(.active-aes):not(.active-des){color:var(--text);background:var(--border)}
+
+  .crypto-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px}
+
+  .panel{background:var(--card);border:1px solid var(--border)}
+  .panel-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .panel-title{font-size:14px;font-weight:700}
+  .panel-tag{font-family:var(--mono);font-size:9px;padding:4px 10px;border:1px solid var(--border);color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+  .panel-tag.aes{border-color:var(--accent);color:var(--accent)}
+  .panel-tag.des{border-color:var(--accent2);color:var(--accent2)}
+  .panel-body{padding:24px}
+
+  .field-group{margin-bottom:16px}
+  .field-group label{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+  .field-group input,.field-group textarea{width:100%;padding:11px 14px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;outline:none;resize:none;transition:border-color .2s}
+  .field-group input:focus,.field-group textarea:focus{border-color:var(--accent)}
+  .field-group textarea{height:70px}
+
+  .btn{padding:11px 20px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;border:none;transition:opacity .2s;margin-right:8px;margin-bottom:8px}
+  .btn:hover{opacity:.85}
+  .btn-accent{background:var(--accent);color:var(--black)}
+  .btn-danger{background:var(--accent2);color:white}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+  .btn-outline:hover{border-color:var(--text);color:var(--text)}
+
+  .output-box{background:var(--surface);border:1px solid var(--border);padding:16px;font-family:var(--mono);font-size:11px;color:#7EC8E3;min-height:80px;word-break:break-all;line-height:1.7;white-space:pre-wrap;margin-top:16px}
+
+  .comparison-section{margin-top:40px}
+  .comparison-title{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+  .compare-card{padding:24px;border:1px solid var(--border)}
+  .compare-card.aes-card{background:rgba(200,241,53,.04);border-color:rgba(200,241,53,.2)}
+  .compare-card.des-card{background:rgba(255,71,87,.04);border-color:rgba(255,71,87,.2)}
+
+  .compare-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+  .compare-label.aes{color:var(--accent)}
+  .compare-label.des{color:var(--accent2)}
+
+  .spec-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px}
+  .spec-row:last-child{border-bottom:none}
+  .spec-key{color:var(--muted)}
+  .spec-val{color:var(--text)}
+  .spec-val.good{color:var(--accent)}
+  .spec-val.bad{color:var(--accent2)}
+
+  .hash-section{margin-top:40px;background:var(--card);border:1px solid var(--border);padding:28px}
+  .hash-title{font-size:16px;font-weight:700;margin-bottom:6px}
+  .hash-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:20px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:24px">
+    <a href="/dashboard" class="logo">
+      <div class="logo-icon">SB</div>
+      <div class="logo-text">Secure<span>Bank</span></div>
+    </a>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/messages" class="nav-link">Messages</a>
+    <a href="/logout" class="nav-link danger">Logout</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-title">// Cryptography</div>
+  <div class="page-heading">Crypto <span>Lab</span></div>
+
+  <div class="algo-tabs">
+    <button class="tab-btn active-aes" id="tab-aes" onclick="switchTab('aes')">AES-128</button>
+    <button class="tab-btn" id="tab-des" onclick="switchTab('des')">DES</button>
+  </div>
+
+  <div class="crypto-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Encrypt</div>
+        <div class="panel-tag aes" id="algo-tag">AES-128-CBC</div>
+      </div>
+      <div class="panel-body">
+        <div class="field-group">
+          <label>Plaintext</label>
+          <textarea id="enc-input" placeholder="Enter text to encrypt..."></textarea>
+        </div>
+        <div class="field-group">
+          <label>Key (leave blank to auto-generate)</label>
+          <input type="text" id="enc-key" placeholder="Auto-generated if empty">
+        </div>
+        <button class="btn btn-accent" onclick="doEncrypt()">→ Encrypt</button>
+        <button class="btn btn-outline" onclick="clearEnc()">Clear</button>
+        <div class="output-box" id="enc-output">// Output will appear here</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Decrypt</div>
+        <div class="panel-tag des" style="border-color:var(--border);color:var(--muted)" id="dec-tag">CBC Mode</div>
+      </div>
+      <div class="panel-body">
+        <div class="field-group">
+          <label>Ciphertext (hex)</label>
+          <textarea id="dec-ct" placeholder="Paste ciphertext here..."></textarea>
+        </div>
+        <div class="field-group">
+          <label>Key</label>
+          <input type="text" id="dec-key" placeholder="Encryption key">
+        </div>
+        <div class="field-group">
+          <label>IV (Initialization Vector)</label>
+          <input type="text" id="dec-iv" placeholder="IV from encryption">
+        </div>
+        <button class="btn btn-accent" onclick="doDecrypt()">→ Decrypt</button>
+        <div class="output-box" id="dec-output">// Output will appear here</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="comparison-section">
+    <div class="comparison-title">AES vs DES — Security Comparison</div>
+    <div class="compare-grid">
+      <div class="compare-card aes-card">
+        <div class="compare-label aes">AES-128 (Recommended)</div>
+        <div class="spec-row"><span class="spec-key">Key Size</span><span class="spec-val good">128 / 192 / 256 bits</span></div>
+        <div class="spec-row"><span class="spec-key">Block Size</span><span class="spec-val">128 bits</span></div>
+        <div class="spec-row"><span class="spec-key">Rounds</span><span class="spec-val">10 / 12 / 14</span></div>
+        <div class="spec-row"><span class="spec-key">Status</span><span class="spec-val good">✓ Secure — NIST Standard</span></div>
+        <div class="spec-row"><span class="spec-key">Brute Force</span><span class="spec-val good">2¹²⁸ operations</span></div>
+        <div class="spec-row"><span class="spec-key">Used In</span><span class="spec-val">HTTPS, banking, VPNs</span></div>
+      </div>
+      <div class="compare-card des-card">
+        <div class="compare-label des">DES (Deprecated)</div>
+        <div class="spec-row"><span class="spec-key">Key Size</span><span class="spec-val bad">56 bits effective</span></div>
+        <div class="spec-row"><span class="spec-key">Block Size</span><span class="spec-val">64 bits</span></div>
+        <div class="spec-row"><span class="spec-key">Rounds</span><span class="spec-val">16</span></div>
+        <div class="spec-row"><span class="spec-key">Status</span><span class="spec-val bad">✗ Broken — Retired 1999</span></div>
+        <div class="spec-row"><span class="spec-key">Brute Force</span><span class="spec-val bad">2⁵⁶ — cracked in &lt;24hrs</span></div>
+        <div class="spec-row"><span class="spec-key">Used In</span><span class="spec-val bad">Legacy systems only</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hash-section">
+    <div class="hash-title">SHA-512 Password Hashing</div>
+    <div class="hash-sub">Used for hashing user passwords in SecureBank. One-way function — cannot be reversed.</div>
+    <div class="field-group">
+      <label>Input Text</label>
+      <input type="text" id="hash-input" placeholder="Enter password to hash...">
+    </div>
+    <button class="btn btn-accent" onclick="doHash()">→ Hash with SHA-512</button>
+    <div class="output-box" id="hash-output">// SHA-512 hash will appear here</div>
+  </div>
+</div>
+
+<script>
+let currentAlgo = 'aes';
+let lastEncResult = null;
+
+function switchTab(algo) {
+  currentAlgo = algo;
+  document.getElementById('tab-aes').className = 'tab-btn' + (algo === 'aes' ? ' active-aes' : '');
+  document.getElementById('tab-des').className = 'tab-btn' + (algo === 'des' ? ' active-des' : '');
+  document.getElementById('algo-tag').textContent = algo === 'aes' ? 'AES-128-CBC' : 'DES-CBC';
+}
+
+function doEncrypt() {
+  const text = document.getElementById('enc-input').value;
+  const key = document.getElementById('enc-key').value;
+  if (!text) return;
+  fetch('/api/encrypt', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text, key, algo: currentAlgo})
+  }).then(r => r.json()).then(data => {
+    lastEncResult = data;
+    document.getElementById('enc-output').textContent =
+      `Algorithm : ${data.algo}\nKey       : ${data.key}\nIV        : ${data.iv}\nCiphertext: ${data.ciphertext}`;
+    document.getElementById('dec-key').value = data.key;
+    document.getElementById('dec-iv').value = data.iv;
+    document.getElementById('dec-ct').value = data.ciphertext;
+  });
+}
+
+function doDecrypt() {
+  const ciphertext = document.getElementById('dec-ct').value;
+  const key = document.getElementById('dec-key').value;
+  const iv = document.getElementById('dec-iv').value;
+  if (!ciphertext || !key || !iv) return;
+  fetch('/api/decrypt', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ciphertext, key, iv, algo: currentAlgo})
+  }).then(r => r.json()).then(data => {
+    if (data.plaintext !== undefined) {
+      document.getElementById('dec-output').textContent = `Decrypted : ${data.plaintext}`;
+    } else {
+      document.getElementById('dec-output').textContent = `Error: ${data.error}`;
+    }
+  });
+}
+
+function clearEnc() {
+  document.getElementById('enc-input').value = '';
+  document.getElementById('enc-key').value = '';
+  document.getElementById('enc-output').textContent = '// Output will appear here';
+}
+
+function doHash() {
+  const text = document.getElementById('hash-input').value;
+  if (!text) return;
+  document.getElementById('hash-output').textContent = 'Hashing...';
+  fetch('/api/hash', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text})
+  }).then(r => r.json()).then(data => {
+    document.getElementById('hash-output').textContent = `SHA-512:\n${data.hash}`;
+  });
+}
+</script>
+</body>
+</html>
