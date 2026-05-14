@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureBank — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --black: #080A0F;
+    --surface: #0E1117;
+    --card: #141820;
+    --border: #1E2530;
+    --accent: #C8F135;
+    --accent2: #FF4757;
+    --text: #E8EDF5;
+    --muted: #5A6478;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+  body { background: var(--black); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 24px; }
+
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: var(--black);
+    clip-path: polygon(0 0, 85% 0, 100% 15%, 100% 100%, 15% 100%, 0 85%);
+  }
+
+  .logo-text { font-weight: 800; font-size: 16px; }
+  .logo-text span { color: var(--accent); }
+
+  .mode-badge {
+    padding: 5px 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border: 1px solid;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .mode-badge.secure { border-color: var(--accent); color: var(--accent); }
+  .mode-badge.vulnerable { border-color: var(--accent2); color: var(--accent2); }
+
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+
+  .nav-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    transition: color 0.2s;
+  }
+
+  .nav-link:hover { color: var(--text); }
+  .nav-link.danger { color: var(--accent2); }
+
+  .user-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    letter-spacing: 1px;
+  }
+
+  .main { padding: 32px; max-width: 1300px; margin: 0 auto; }
+
+  .page-title {
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .stat-card.danger::before { background: var(--accent2); }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.danger { color: var(--accent2); }
+
+  .stat-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+
+  .panel-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .panel-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .panel-body { padding: 24px; }
+
+  .form-row { display: flex; gap: 12px; margin-bottom: 16px; }
+  .form-row.col { flex-direction: column; }
+
+  .field-group { flex: 1; }
+
+  .field-group label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .field-group input, .field-group textarea, .field-group select {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field-group input:focus, .field-group textarea:focus { border-color: var(--accent); }
+
+  .btn {
+    padding: 12px 24px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+    width: 100%;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn-accent { background: var(--accent); color: var(--black); }
+  .btn-danger { background: var(--accent2); color: white; }
+
+  .csrf-warning {
+    background: rgba(255,71,87,0.08);
+    border: 1px solid rgba(255,71,87,0.25);
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent2);
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  .tx-table { width: 100%; border-collapse: collapse; }
+  .tx-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tx-table td {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .tx-table tr:last-child td { border-bottom: none; }
+
+  .tx-type {
+    font-size: 9px;
+    padding: 3px 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .tx-sent { background: rgba(255,71,87,0.1); color: var(--accent2); }
+  .tx-recv { background: rgba(200,241,53,0.1); color: var(--accent); }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    padding: 16px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    z-index: 999;
+    animation: slideUp 0.3s ease;
+    max-width: 340px;
+    line-height: 1.5;
+  }
+
+  .toast.success { background: var(--accent); color: var(--black); }
+  .toast.error { background: var(--accent2); color: white; }
+  .toast.info { background: var(--card); border: 1px solid var(--border); color: var(--text); }
+
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .attack-panel {
+    margin-top: 24px;
+    background: rgba(255,71,87,0.05);
+    border: 1px solid rgba(255,71,87,0.2);
+    padding: 20px;
+  }
+
+  .attack-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .forge-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent2);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent2);
+  }
+
+  .forge-link:hover { opacity: 0.8; }
+
+  #toast-container { position: fixed; bottom: 32px; right: 32px; z-index: 999; display: flex; flex-direction: column; gap: 12px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="/dashboard" class="logo">
+      <div class="logo-icon">SB</div>
+      <div class="logo-text">Secure<span>Bank</span></div>
+    </a>
+    <div class="mode-badge {% if mode == 'secure' %}secure{% else %}vulnerable{% endif %}">
+      <div class="dot"></div>
+      {{ mode|upper }} MODE
+    </div>
+  </div>
+  <div class="topbar-right">
+    <a href="/messages" class="nav-link">Messages</a>
+    <a href="/crypto" class="nav-link">Crypto Lab</a>
+    {% if session.role == 'admin' %}<a href="/admin" class="nav-link">Admin</a>{% endif %}
+    <div class="user-tag">{{ user.username }} · {{ user.role }}</div>
+    <a href="/logout" class="nav-link danger">Logout</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-title">// Account Dashboard</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Account Balance</div>
+      <div class="stat-value accent">Rs.{{ "%.0f"|format(user.balance) }}</div>
+      <div class="stat-sub">PKR · Savings Account</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Account Holder</div>
+      <div class="stat-value" style="font-size:22px;">{{ user.username }}</div>
+      <div class="stat-sub">Role: {{ user.role }}</div>
+    </div>
+    <div class="stat-card {% if mode == 'vulnerable' %}danger{% endif %}">
+      <div class="stat-label">Security Mode</div>
+      <div class="stat-value {% if mode == 'secure' %}accent{% else %}danger{% endif %}" style="font-size:20px;">
+        {{ "SECURE" if mode == 'secure' else "VULNERABLE" }}
+      </div>
+      <div class="stat-sub">{{ "All defenses active" if mode == 'secure' else "Attacks enabled" }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Recent Transactions</div>
+      <div class="stat-value">{{ transactions|length }}</div>
+      <div class="stat-sub">Last 5 operations</div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Transfer Funds</div>
+        <div class="panel-tag">{% if mode == 'secure' %}CSRF Protected{% else %}CSRF Vulnerable{% endif %}</div>
+      </div>
+      <div class="panel-body">
+        {% if mode == 'vulnerable' %}
+        <div class="csrf-warning">
+          ⚠ CSRF tokens disabled. A forged page could trigger this transfer without your consent.
+        </div>
+        {% endif %}
+
+        <div class="form-row">
+          <div class="field-group">
+            <label>Recipient Username</label>
+            <input type="text" id="receiver" placeholder="alice, bob...">
+          </div>
+          <div class="field-group">
+            <label>Amount (Rs.)</label>
+            <input type="number" id="amount" placeholder="100">
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom:16px">
+          <label>Note</label>
+          <input type="text" id="note" placeholder="Payment for...">
+        </div>
+
+        <button class="btn {% if mode == 'secure' %}btn-accent{% else %}btn-danger{% endif %}" onclick="doTransfer()">
+          {% if mode == 'secure' %}→ Send Transfer{% else %}☠ Send (No CSRF Check){% endif %}
+        </button>
+
+        {% if mode == 'vulnerable' %}
+        <div class="attack-panel">
+          <div class="attack-title">⚠ CSRF Attack Demo</div>
+          <p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6;">
+            Open the forged page in another tab to simulate a CSRF attack:
+          </p>
+          <a href="/forge-csrf" target="_blank" class="forge-link">→ Open Forged Attacker Page</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Recent Transactions</div>
+        <div class="panel-tag">Live Feed</div>
+      </div>
+      <div class="panel-body" style="padding:0">
+        {% if transactions %}
+        <table class="tx-table">
+          <tr>
+            <th>Type</th>
+            <th>Party</th>
+            <th>Amount</th>
+            <th>Note</th>
+          </tr>
+          {% for tx in transactions %}
+          <tr>
+            <td>
+              {% if tx.sender == user.username %}
+              <span class="tx-type tx-sent">Sent</span>
+              {% else %}
+              <span class="tx-type tx-recv">Received</span>
+              {% endif %}
+            </td>
+            <td>{{ tx.receiver if tx.sender == user.username else tx.sender }}</td>
+            <td>Rs.{{ "%.0f"|format(tx.amount) }}</td>
+            <td style="color:var(--muted)">{{ tx.note[:20] if tx.note else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <div style="padding:32px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted)">
+          No transactions yet
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+const CSRF_TOKEN = "{{ csrf_token }}";
+const MODE = "{{ mode }}";
+
+function showToast(msg, type='info') {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function doTransfer() {
+  const receiver = document.getElementById('receiver').value;
+  const amount = document.getElementById('amount').value;
+  const note = document.getElementById('note').value;
+
+  if (!receiver || !amount) { showToast('Fill in receiver and amount', 'error'); return; }
+
+  const body = new FormData();
+  body.append('receiver', receiver);
+  body.append('amount', amount);
+  body.append('note', note);
+  if (MODE === 'secure') body.append('csrf_token', CSRF_TOKEN);
+
+  fetch('/transfer', { method: 'POST', body })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message, 'success');
+        setTimeout(() => location.reload(), 2000);
+      } else if (data.blocked) {
+        showToast('CSRF BLOCKED: ' + data.error, 'error');
+      } else {
+        showToast(data.error, 'error');
+      }
+    });
+}
+</script>
+</body>
+</html>

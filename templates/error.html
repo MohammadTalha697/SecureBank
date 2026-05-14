@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SecureBank — Access Denied</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--black:#080A0F;--accent2:#FF4757;--text:#E8EDF5;--muted:#5A6478;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
+  body{background:var(--black);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center}
+  .code{font-size:100px;font-weight:800;color:var(--accent2);letter-spacing:-4px;line-height:1}
+  .msg{font-family:var(--mono);font-size:14px;color:var(--muted);margin:16px 0 32px}
+  a{font-family:var(--mono);font-size:12px;color:var(--accent2);text-decoration:none;border-bottom:1px solid var(--accent2);padding-bottom:2px}
+</style>
+</head>
+<body>
+<div>
+  <div class="code">403</div>
+  <div class="msg">{{ message }}</div>
+  <a href="/dashboard">← Back to Dashboard</a>
+</div>
+</body>
+</html>

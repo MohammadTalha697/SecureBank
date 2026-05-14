@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SecureBank — Messages</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{--black:#080A0F;--surface:#0E1117;--card:#141820;--border:#1E2530;--accent:#C8F135;--accent2:#FF4757;--text:#E8EDF5;--muted:#5A6478;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
+  body{background:var(--black);color:var(--text);font-family:var(--sans);min-height:100vh}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+  .logo-icon{width:34px;height:34px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--black);clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%)}
+  .logo-text{font-weight:800;font-size:16px}.logo-text span{color:var(--accent)}
+  .mode-badge{padding:5px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border:1px solid;display:flex;align-items:center;gap:6px}
+  .mode-badge.secure{border-color:var(--accent);color:var(--accent)}
+  .mode-badge.vulnerable{border-color:var(--accent2);color:var(--accent2)}
+  .dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .nav-link{font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;transition:color .2s}
+  .nav-link:hover{color:var(--text)}.nav-link.danger{color:var(--accent2)}
+  .user-tag{font-family:var(--mono);font-size:11px;padding:6px 14px;background:var(--card);border:1px solid var(--border);color:var(--text)}
+
+  .main{padding:32px;max-width:900px;margin:0 auto}
+  .page-title{font-size:13px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:28px}
+
+  .xss-banner{background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.3);padding:16px 20px;margin-bottom:24px;font-family:var(--mono);font-size:12px;color:var(--accent2);line-height:1.7}
+  .xss-banner strong{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .xss-banner code{background:rgba(255,71,87,.15);padding:2px 6px;font-size:11px}
+
+  .secure-banner{background:rgba(200,241,53,.06);border:1px solid rgba(200,241,53,.2);padding:16px 20px;margin-bottom:24px;font-family:var(--mono);font-size:12px;color:var(--accent);line-height:1.7}
+
+  .compose-panel{background:var(--card);border:1px solid var(--border);margin-bottom:24px}
+  .panel-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .panel-title{font-size:13px;font-weight:700}
+  .panel-tag{font-family:var(--mono);font-size:9px;padding:4px 10px;border:1px solid var(--border);color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+  .panel-body{padding:24px}
+
+  .field-group{margin-bottom:16px}
+  .field-group label{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+  .field-group textarea{width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;outline:none;resize:none;transition:border-color .2s;height:80px}
+  .field-group textarea:focus{border-color:var(--accent)}
+
+  .btn{padding:11px 24px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;border:none;transition:opacity .2s}
+  .btn:hover{opacity:.85}
+  .btn-accent{background:var(--accent);color:var(--black)}
+  .btn-danger{background:var(--accent2);color:white}
+
+  .messages-list{display:flex;flex-direction:column;gap:12px}
+
+  .msg-card{background:var(--card);border:1px solid var(--border);padding:20px}
+  .msg-meta{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .msg-user{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1px}
+  .msg-time{font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .msg-body{font-size:14px;line-height:1.6;color:var(--text)}
+
+  .empty-state{text-align:center;padding:60px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:24px">
+    <a href="/dashboard" class="logo">
+      <div class="logo-icon">SB</div>
+      <div class="logo-text">Secure<span>Bank</span></div>
+    </a>
+    <div class="mode-badge {% if mode == 'secure' %}secure{% else %}vulnerable{% endif %}">
+      <div class="dot"></div>{{ mode|upper }} MODE
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/crypto" class="nav-link">Crypto Lab</a>
+    <a href="/logout" class="nav-link danger">Logout</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-title">// Message Board</div>
+
+  {% if mode == 'vulnerable' %}
+  <div class="xss-banner">
+    <strong>⚠ XSS Attack Mode — Input is NOT sanitized</strong>
+    Try posting: <code>&lt;script&gt;alert('XSS Attack!')&lt;/script&gt;</code><br>
+    Or: <code>&lt;img src=x onerror="alert('Stored XSS!')"&gt;</code>
+  </div>
+  {% else %}
+  <div class="secure-banner">
+    ✓ XSS Protection Active — All user input is HTML-escaped before storage and display. Scripts cannot execute.
+  </div>
+  {% endif %}
+
+  <div class="compose-panel">
+    <div class="panel-header">
+      <div class="panel-title">Post a Message</div>
+      <div class="panel-tag">{% if mode == 'secure' %}Sanitized{% else %}Unsanitized{% endif %}</div>
+    </div>
+    <div class="panel-body">
+      <form method="POST">
+        <div class="field-group">
+          <label>Your Message</label>
+          <textarea name="content" placeholder="Write something..."></textarea>
+        </div>
+        <button type="submit" class="btn {% if mode == 'secure' %}btn-accent{% else %}btn-danger{% endif %}">
+          {% if mode == 'secure' %}→ Post Message{% else %}☠ Post (XSS Enabled){% endif %}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="messages-list">
+    {% if messages %}
+      {% for msg in messages %}
+      <div class="msg-card">
+        <div class="msg-meta">
+          <div class="msg-user">{{ msg.username }}</div>
+          <div class="msg-time">{{ msg.timestamp }}</div>
+        </div>
+        <div class="msg-body">
+          {% if mode == 'vulnerable' %}
+            {{ msg.content|safe }}
+          {% else %}
+            {{ msg.content }}
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No messages yet. Be the first to post.</div>
+    {% endif %}
+  </div>
+</div>
+
+</body>
+</html>
